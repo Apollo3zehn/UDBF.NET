@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A Gantner UDBF (Universal Data-Bin-File Format) reader.</Description>
+    <PackageTags>Gantner UDBF</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.1" />
+  </ItemGroup>
+
+</Project>
