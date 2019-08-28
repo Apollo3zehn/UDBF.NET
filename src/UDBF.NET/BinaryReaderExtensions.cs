@@ -25,17 +25,10 @@ namespace UDBF.NET
 
             fixed (byte* p_source_bytes = &bytes[0])
             {
-                // create pointer to value of type T
-                T* p_value = &value;
+                T* p_source_value = (T*)p_source_bytes;
+                T* p_target_value = &value;
 
-                // cast T pointer to byte pointer
-                byte* p_target_bytes = (byte*)p_value;
-
-                // copy bytes
-                for (int i = 0; i < byteCount; i++)
-                {
-                    p_target_bytes[i] = p_source_bytes[i];
-                }
+                *p_target_value = *p_source_value;
             }
 
             return value;
