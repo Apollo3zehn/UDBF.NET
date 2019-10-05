@@ -13,7 +13,7 @@ namespace UDBF.NET.Tests
             var filePath = "testdata.dat";
 
             // Act
-            using (var udbf = new UDBF(filePath))
+            using (var udbf = new UDBFFile(filePath))
             {
                 // Assert
                 Assert.True(udbf.ActTimeDataType == UDBFDataType.UnSignedInt64);
@@ -47,7 +47,7 @@ namespace UDBF.NET.Tests
             // Arrange
             var filePath = "testdata.dat";
 
-            using (var udbf = new UDBF(filePath))
+            using (var udbf = new UDBFFile(filePath))
             {
                 // Act
                 (var timestamps, var dataset) = udbf.ReadAll();
@@ -76,7 +76,7 @@ namespace UDBF.NET.Tests
             // Arrange
             var filePath = "testdata.dat";
 
-            using (var udbf = new UDBF(filePath))
+            using (var udbf = new UDBFFile(filePath))
             {
                 var variable1 = udbf.Variables[0];
                 var variable2 = udbf.Variables[1];
@@ -105,7 +105,7 @@ namespace UDBF.NET.Tests
             // Arrange
             var filePath = "testdata.dat";
 
-            using (var udbf = new UDBF(filePath))
+            using (var udbf = new UDBFFile(filePath))
             {
                 var variable = new UDBFVariable();
 
@@ -120,7 +120,7 @@ namespace UDBF.NET.Tests
             // Arrange
             var filePath = "testdata.dat";
 
-            using (var udbf = new UDBF(filePath))
+            using (var udbf = new UDBFFile(filePath))
             {
                 var variable = udbf.Variables.First();
 

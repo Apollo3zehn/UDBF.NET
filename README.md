@@ -11,7 +11,7 @@ The following code shows how to use read all data from a file:
 ```cs
 var filePath = "testdata.dat";
 
-using (var udbf = new UDBF(filePath))
+using (var udbf = new UDBFFile(filePath))
 {
     Console.WriteLine($"File '{filePath}' contains {udbf.Variables.Count} variables.");
 
