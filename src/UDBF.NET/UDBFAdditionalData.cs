@@ -4,6 +4,9 @@ using System.Text;
 
 namespace UDBF.NET
 {
+    /// <summary>
+    /// Represents additional data in an UDBF file.
+    /// </summary>
     public class UDBFAdditionalData
     {
         #region Constructors

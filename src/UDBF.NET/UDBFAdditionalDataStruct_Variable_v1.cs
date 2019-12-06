@@ -3,6 +3,11 @@ using System.IO;
 
 namespace UDBF.NET
 {
+#warning Find descriptions for all members of this type.
+
+    /// <summary>
+    /// Unknown.
+    /// </summary>
     public class UDBFAdditionalDataStruct_Variable_v1
     {
         #region Constructors
@@ -22,8 +27,19 @@ namespace UDBF.NET
 
         #region Properties
 
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public UInt16 UARTIndex { get; set; }
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public UInt16 SlaveAddress { get; set; }
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public UInt16 SlaveDataIndex { get; set; }
 
         #endregion
