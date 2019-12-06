@@ -1,5 +1,8 @@
 ﻿namespace UDBF.NET
 {
+    /// <summary>
+    /// A container for the actual data.
+    /// </summary>
     public class UDBFData
     {
         #region Constructors
@@ -32,6 +35,10 @@
         #endregion
     }
 
+    /// <summary>
+    /// A typed container for the actual data.
+    /// </summary>
+    /// <typeparam name="T">The data type.</typeparam>
     public class UDBFData<T>
     {
         #region Constructors

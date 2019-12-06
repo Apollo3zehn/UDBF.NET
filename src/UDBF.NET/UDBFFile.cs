@@ -10,6 +10,10 @@ namespace UDBF.NET
     // UNIVERSAL DATA-BIN-FILE FORMAT
     // http://www.famosforum.de/index.php?attachment/508-udbf-107-pdf/
     // http://www.famosforum.de/forum/index.php?thread/903-einlesen-von-ganter-loggerdaten-dat-in-famos/
+    
+    /// <summary>
+    /// An in-memory representation of an UDFB file.
+    /// </summary>
     public class UDBFFile : IDisposable
     {
         #region Fields
@@ -22,7 +26,7 @@ namespace UDBF.NET
         #region Constructors
 
         /// <summary>
-        /// Opens and reads the UDBF header of the file specified in <paramref name="filePath"./>
+        /// Opens and reads the UDBF header of the file specified in <paramref name="filePath"/>.
         /// </summary>
         /// <param name="filePath">The path of the file to open.</param>
         public UDBFFile(string filePath)

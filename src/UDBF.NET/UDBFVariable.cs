@@ -3,15 +3,26 @@ using System.IO;
 
 namespace UDBF.NET
 {
+    /// <summary>
+    /// Represents a variable within an UDBF file.
+    /// </summary>
     public class UDBFVariable
     {
         #region Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UDBFVariable"/> class.
+        /// </summary>
         public UDBFVariable()
         {
             //
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UDBFVariable"/> class.
+        /// </summary>
+        /// <param name="version">The version of the source data.</param>
+        /// <param name="reader">The reader for the source data.</param>
         public UDBFVariable(UInt16 version, BinaryReader reader)
         {
             // Name
