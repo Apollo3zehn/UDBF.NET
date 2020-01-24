@@ -189,7 +189,7 @@ namespace UDBF.NET
 
             // variableOffset
             if (variables.IndexOf(variable) == -1)
-                throw new ArgumentException("The passed variable does not belong this this file.");
+                throw new ArgumentException("The passed variable does not belong to this file.");
 
             var variableOffset = variables.Where(current => variables.IndexOf(current) < variables.IndexOf(variable))
                                           .Sum(variable => this.GetSize(variable.DataType));
