@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -91,10 +91,11 @@ namespace UDBF.NET
             this.HeaderSize = _reader.BaseStream.Position + 1;
 
             // DataStartPosition
-            var startPosition = _reader.BaseStream.Position + 8;
-            var remaining = 16 - startPosition % 16;
+            _reader.BaseStream.Position += 8; // minimum 8 separation characters are added
+            var remainder = _reader.BaseStream.Position % 16;
+            var bytesToAdd = remainder == 0 ? 0 : 16 - remainder;
 
-            this.DataStartPosition = _reader.BaseStream.Position + Math.Max(8, remaining + 8);
+            this.DataStartPosition = _reader.BaseStream.Position + bytesToAdd;
         }
 
         #endregion
