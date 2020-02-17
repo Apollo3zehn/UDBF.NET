@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace UDBF.NET
@@ -6,6 +7,7 @@ namespace UDBF.NET
     /// <summary>
     /// Represents a variable within an UDBF file.
     /// </summary>
+    [DebuggerDisplay("{Name}")]
     public class UDBFVariable
     {
         #region Constructors
