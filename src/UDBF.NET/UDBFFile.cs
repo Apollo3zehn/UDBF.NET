@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,6 +19,7 @@ namespace UDBF.NET
     {
         #region Fields
 
+        private FileStream _fileStream;
         private BinaryReader _reader;
         private const int SUPPORTED_VERSION = 107;
 
@@ -33,7 +35,8 @@ namespace UDBF.NET
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            _reader = new BinaryReader(File.OpenRead(filePath));
+            _fileStream = File.OpenRead(filePath);
+            _reader = new BinaryReader(_fileStream);
 
             if (!_reader.BaseStream.CanSeek)
                 throw new NotSupportedException("The underlying stream must be seekable.");
@@ -202,15 +205,20 @@ namespace UDBF.NET
             var timestamps = new DateTime[bufferSize];
             var buffer = new T[bufferSize];
 
+            // memory mapped file
+            using var mmf = MemoryMappedFile.CreateFromFile(_fileStream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true);
+            using var accessor = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
+            
             // go
             var bufferPosition = 0;
-            _reader.BaseStream.Position = this.DataStartPosition;
+            var fileLength = _reader.BaseStream.Length;
+            var filePosition = this.DataStartPosition;
 
-            while (_reader.BaseStream.Position < _reader.BaseStream.Length)
+            while (filePosition < fileLength)
             {
                 if (this.HasTimeField)
                 {
-                    var rawTime = this.ReadSingleValue(this.ActTimeDataType);
+                    var rawTime = this.ReadSingleValue(accessor, filePosition, this.ActTimeDataType);
                     var relativeTime = TimeSpan.FromDays(rawTime * this.ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
 
                     timestamps[bufferPosition] = epoch.Add(relativeTime);
@@ -218,13 +226,12 @@ namespace UDBF.NET
 
                 // got to current row + variable offset
                 var rowStart = this.DataStartPosition + rowWidth * bufferPosition;
-                _reader.BaseStream.Seek(rowStart + variableOffset, SeekOrigin.Begin);
 
-                buffer[bufferPosition] = _reader.Read<T>();
+                accessor.Read(rowStart + variableOffset, out buffer[bufferPosition]);
                 bufferPosition++;
 
                 // got to next row
-                _reader.BaseStream.Seek(rowStart + rowWidth, SeekOrigin.Begin);
+                filePosition += rowWidth;
             }
 
             return (timestamps, new UDBFData<T>(variable, buffer));
@@ -242,21 +249,31 @@ namespace UDBF.NET
             var timestamps = new DateTime[bufferSize];
             var buffers = variables.Select(variable => new double[bufferSize]).ToList();
 
+            // memory mapped file
+            using var mmf = MemoryMappedFile.CreateFromFile(_fileStream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true);
+            using var accessor = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
+
             // go
             var bufferPosition = 0;
-            _reader.BaseStream.Position = this.DataStartPosition;
+            var fileLength = _reader.BaseStream.Length;
+            var filePosition = this.DataStartPosition;
 
-            while (_reader.BaseStream.Position < _reader.BaseStream.Length)
+            while (filePosition < fileLength)
             {
                 if (this.HasTimeField)
                 {
-                    var rawTime = this.ReadSingleValue(this.ActTimeDataType);
+                    var rawTime = this.ReadSingleValue(accessor, filePosition, this.ActTimeDataType);
+                    filePosition += this.GetSize(this.ActTimeDataType);
+
                     var relativeTime = TimeSpan.FromDays(rawTime * this.ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
                     timestamps[bufferPosition] = epoch.Add(relativeTime);
                 }
 
                 for (int i = 0; i < variables.Count; i++)
-                    buffers[i][bufferPosition] = this.ReadSingleValue(variables[i].DataType);
+                {
+                    buffers[i][bufferPosition] = this.ReadSingleValue(accessor, filePosition, variables[i].DataType);
+                    filePosition += this.GetSize(variables[i].DataType);
+                }
 
                 bufferPosition++;
             }
@@ -297,25 +314,25 @@ namespace UDBF.NET
             return (variables, rowWidth, bufferSize, startTime, epoch);
         }
 
-        private double ReadSingleValue(UDBFDataType dataType)
+        private double ReadSingleValue(MemoryMappedViewAccessor accessor, long offset, UDBFDataType dataType)
         {
             return dataType switch
             {
-                UDBFDataType.Boolean => this.SkipNaN(1),
-                UDBFDataType.SignedInt8 => _reader.ReadSByte(),
-                UDBFDataType.UnSignedInt8 => _reader.ReadByte(),
-                UDBFDataType.SignedInt16 => _reader.ReadInt16(),
-                UDBFDataType.UnSignedInt16 => _reader.ReadUInt16(),
-                UDBFDataType.SignedInt32 => _reader.ReadInt32(),
-                UDBFDataType.UnSignedInt32 => _reader.ReadUInt32(),
-                UDBFDataType.Float => _reader.ReadSingle(),
-                UDBFDataType.BitSet8 => this.SkipNaN(1),
-                UDBFDataType.BitSet16 => this.SkipNaN(2),
-                UDBFDataType.BitSet32 => this.SkipNaN(4),
-                UDBFDataType.Double => _reader.ReadDouble(),
-                UDBFDataType.SignedInt64 => _reader.ReadInt64(),
-                UDBFDataType.UnSignedInt64 => _reader.ReadUInt64(),
-                UDBFDataType.BitSet64 => this.SkipNaN(8),
+                UDBFDataType.Boolean => double.NaN,
+                UDBFDataType.SignedInt8 => accessor.ReadSByte(offset),
+                UDBFDataType.UnSignedInt8 => accessor.ReadByte(offset),
+                UDBFDataType.SignedInt16 => accessor.ReadInt16(offset),
+                UDBFDataType.UnSignedInt16 => accessor.ReadUInt16(offset),
+                UDBFDataType.SignedInt32 => accessor.ReadInt32(offset),
+                UDBFDataType.UnSignedInt32 => accessor.ReadUInt32(offset),
+                UDBFDataType.Float => accessor.ReadSingle(offset),
+                UDBFDataType.BitSet8 => double.NaN,
+                UDBFDataType.BitSet16 => double.NaN,
+                UDBFDataType.BitSet32 => double.NaN,
+                UDBFDataType.Double => accessor.ReadDouble(offset),
+                UDBFDataType.SignedInt64 => accessor.ReadInt64(offset),
+                UDBFDataType.UnSignedInt64 => accessor.ReadUInt64(offset),
+                UDBFDataType.BitSet64 => double.NaN,
                 _ => throw new ArgumentException($"Unknown data type {dataType}.")
             };
         }
