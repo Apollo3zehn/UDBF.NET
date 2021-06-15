@@ -4,9 +4,6 @@
     <Description>A Gantner UDBF (Universal Data-Bin-File Format) reader.</Description>
     <PackageTags>Gantner UDBF</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
 
