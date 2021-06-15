@@ -43,15 +43,11 @@ using (var udbf = new UDBF(filePath))
 }
 ```
 
-## Advanced features
-
-As long as the number of bytes of the generic type (here: ```float```) matches the number of bytes of the variable type (```variable.DataType```), you can provide any numeric type. For example, instead of interpreting the data as ```float```, you can also do the following:
+If you prefer working with raw buffers (`byte[]`) instead, just pass `byte` as generic parameter into the read method:
 
 ```cs
-(var timestamps, var data) = udbf.Read<uint>(variable);
+(var timestamps, var data) = udbf.Read<byte>(variable);
 ```
-
-This works since both, ```float``` and ```uint32``` have a length of 4 bytes. Of course, interpreting actual ```float``` data as ```uint32``` will result in meaningless numbers, but this feature may be useful to reinterpret other types like ```int32``` vs. ```uint32```.
 
 ## See also
 

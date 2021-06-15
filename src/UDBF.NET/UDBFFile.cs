@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -187,8 +188,6 @@ namespace UDBF.NET
         /// <param name="variable">The variable metadata.</param>
         public (DateTime[] TimeStamps, UDBFData<T> Data) Read<T>(UDBFVariable variable) where T : unmanaged
         {
-            this.CheckType<T>(variable.DataType);
-
             (var variables, var rowWidth, var bufferSize, var startTime, var epoch) = this.PrepareRead();
 
             // variableOffset
@@ -203,14 +202,16 @@ namespace UDBF.NET
 
             // buffers
             var timestamps = new DateTime[bufferSize];
-            var buffer = new T[bufferSize];
+            var result = default(T[]);
+            var typeSize = this.GetSize(variable.DataType);
+            var buffer = this.GetBuffer((ulong)(bufferSize * typeSize), out result);
 
             // memory mapped file
             using var mmf = MemoryMappedFile.CreateFromFile(_fileStream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true);
             using var accessor = mmf.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
             
             // go
-            var bufferPosition = 0;
+            var row = 0;
             var fileLength = _reader.BaseStream.Length;
             var filePosition = this.DataStartPosition;
 
@@ -221,20 +222,24 @@ namespace UDBF.NET
                     var rawTime = this.ReadSingleValue(accessor, filePosition, this.ActTimeDataType);
                     var relativeTime = TimeSpan.FromDays(rawTime * this.ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
 
-                    timestamps[bufferPosition] = epoch.Add(relativeTime);
+                    timestamps[row] = epoch.Add(relativeTime);
                 }
 
                 // got to current row + variable offset
-                var rowStart = this.DataStartPosition + rowWidth * bufferPosition;
+                var rowStart = this.DataStartPosition + rowWidth * row;
+                var bufferOffset = row * typeSize;
 
-                accessor.Read(rowStart + variableOffset, out buffer[bufferPosition]);
-                bufferPosition++;
+                for (int i = 0; i < typeSize; i++)
+                {
+                    accessor.Read(rowStart + variableOffset + i, out buffer[bufferOffset + i]);
+                }
 
                 // got to next row
+                row++;
                 filePosition += rowWidth;
             }
 
-            return (timestamps, new UDBFData<T>(variable, buffer));
+            return (timestamps, new UDBFData<T>(variable, result));
         }
 
         /// <summary>
@@ -337,19 +342,21 @@ namespace UDBF.NET
             };
         }
 
-        private double SkipNaN(int skipCount)
+        private Span<byte> GetBuffer<T>(ulong byteSize, out T[] result)
+            where T : unmanaged
         {
-            _reader.BaseStream.Position += skipCount;
-            return double.NaN;
-        }
+            // convert file type (e.g. 2 bytes) to T (e.g. custom struct with 35 bytes)
+            var sizeOfT = (ulong)Unsafe.SizeOf<T>();
 
-        private void CheckType<T>(UDBFDataType dataType) where T : unmanaged
-        {
-            var genericSize = typeof(T) == typeof(bool) ? 1 : Marshal.SizeOf(default(T));
-            var enumSize = this.GetSize(dataType);
+            if (byteSize % sizeOfT != 0)
+                throw new Exception("The size of the target buffer (number of selected elements times the datasets data-type byte size) must be a multiple of the byte size of the generic parameter T.");
 
-            if (genericSize != enumSize)
-                throw new InvalidOperationException("Size of generic parameter T does not match with size of variable type.");
+            var arraySize = byteSize / sizeOfT;
+
+            // create the buffer
+            result = new T[arraySize];
+
+            return MemoryMarshal.AsBytes(result.AsSpan());
         }
 
         private int GetSize(UDBFDataType dataType)
