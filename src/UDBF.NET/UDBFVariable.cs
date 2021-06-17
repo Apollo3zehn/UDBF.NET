@@ -74,14 +74,17 @@ namespace UDBF.NET
         /// </summary>
         public UDBFDataType DataType { get; set; }
 
+        // Note: The field length description comes from the test.commander software.
+
         /// <summary>
-        /// Gets or sets the field length of the variable.
+        /// Gets or sets the field length of the variable. The field length is in maximum 8 digits, in case a comma is being used it will be seen as 1 digit as well.
         /// </summary>
         public UInt16 FieldLen { get; set; }
 
-#warning Check if data conversion guide is correct.
+        // Note: The precision description comes from the test.commander software.
+
         /// <summary>
-        /// Gets or sets the precision of the variable. Use this to scale the variable data. If variable.Precision = 2, then the scaling factor would be 1 / Math.Exp(2 * Math.Log(10)).
+        /// Gets or sets the precision of the variable. The precision defines the number of digits next to the comma.
         /// </summary>
         public UInt16 Precision { get; set; }
 
