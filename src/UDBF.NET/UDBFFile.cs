@@ -212,10 +212,10 @@ namespace UDBF.NET
             
             // go
             var row = 0;
-            var fileLength = _reader.BaseStream.Length;
+            var correctedFileLength = this.DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
             var filePosition = this.DataStartPosition;
 
-            while (filePosition < fileLength)
+            while (filePosition < correctedFileLength)
             {
                 if (this.HasTimeField)
                 {
@@ -260,10 +260,10 @@ namespace UDBF.NET
 
             // go
             var bufferPosition = 0;
-            var fileLength = _reader.BaseStream.Length;
+            var correctedFileLength = this.DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
             var filePosition = this.DataStartPosition;
 
-            while (filePosition < fileLength)
+            while (filePosition < correctedFileLength)
             {
                 if (this.HasTimeField)
                 {
