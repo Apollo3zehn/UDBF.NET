@@ -1,6 +1,6 @@
 # UDBF.NET
 
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/apollo3zehn/udbf.net?svg=true)](https://ci.appveyor.com/project/Apollo3zehn/udbf-net) [![NuGet](https://img.shields.io/nuget/vpre/UDBF.NET.svg?label=Nuget)](https://www.nuget.org/packages/UDBF.NET)
+[![GitHub Actions](https://github.com/Apollo3zehn/UDBF.NET/actions/workflows/build-and-publish.yml/badge.svg)](https://github.com/Apollo3zehn/UDBF.NET/actions) [![NuGet](https://img.shields.io/nuget/vpre/UDBF.NET.svg?label=Nuget)](https://www.nuget.org/packages/UDBF.NET)
 
 UDBF.NET is a .NET Standard library that provides a reader for Gantner files stored in the UDBF (Universal Data-Bin-File) format (.dat).
 
