@@ -1,10 +1,19 @@
 <Project>
 
-  <Import Project="./build/build.props" />
-
   <PropertyGroup>
-    <PackageLicenseExpression Condition="$(PackageLicenseExpression) == ''">LGPL-3.0-only</PackageLicenseExpression>
-    <PackageProjectUrl Condition="$(PackageProjectUrl) == ''">https://github.com/Apollo3zehn/UDBF.NET</PackageProjectUrl>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworkVersion>net6.0</TargetFrameworkVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+      
+  <PropertyGroup>
+    <ArtifactsPath>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)artifacts))</ArtifactsPath>
+    <BaseIntermediateOutputPath>$(ArtifactsPath)/obj/$(MSBuildProjectName)</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)/$(Configuration)</IntermediateOutputPath>
+    <OutputPath>$(ArtifactsPath)/bin/$(MSBuildProjectName)/$(Configuration)</OutputPath>
+    <PackageOutputPath>$(ArtifactsPath)/packages</PackageOutputPath>
   </PropertyGroup>
 
 </Project>
