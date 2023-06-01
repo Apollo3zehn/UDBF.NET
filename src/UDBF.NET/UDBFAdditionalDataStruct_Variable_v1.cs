@@ -1,6 +1,6 @@
 ﻿namespace UDBF.NET
 {
-#warning Find descriptions for all members of this type.
+    // TODO Find descriptions for all members of this type.
 
     /// <summary>
     /// Unknown.

@@ -23,7 +23,7 @@ namespace UDBF.NET
         /// </summary>
         /// <param name="version">The version of the source data.</param>
         /// <param name="reader">The reader for the source data.</param>
-        public UDBFVariable(UInt16 version, BinaryReader reader)
+        public UDBFVariable(ushort version, BinaryReader reader)
         {
             // Name
             Name = reader.ReadFixedLengthString();
@@ -34,6 +34,7 @@ namespace UDBF.NET
             // DataType
             if (version >= 102)
                 DataType = (UDBFDataType)reader.ReadUInt16();
+                
             else
                 DataType = (UDBFDataType)ConvertDataType(reader.ReadUInt16());
 
@@ -46,6 +47,7 @@ namespace UDBF.NET
             // Unit
             if (version >= 106)
                 Unit = reader.ReadFixedLengthString();
+
             else
                 Unit = string.Empty;
 
@@ -100,7 +102,7 @@ namespace UDBF.NET
 
         #region "Methods"
 
-        private UInt16 ConvertDataType(UInt16 dataType)
+        private ushort ConvertDataType(ushort dataType)
         {
             return dataType switch
             {

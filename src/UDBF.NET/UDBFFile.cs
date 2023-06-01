@@ -51,16 +51,15 @@ namespace UDBF.NET
                 throw new NotSupportedException($"The file version { SUPPORTED_VERSION } is not yet supported. Please inform the package maintainer on GitHub.");
 
             // TypeVendor
-            if (Version > 106)
-                TypeVendor = _reader.ReadFixedLengthString();
-            else
-                TypeVendor = string.Empty;
+            TypeVendor = Version > 106
+                ? _reader.ReadFixedLengthString()
+                : string.Empty;
 
+            // TODO: According to the spec document the condition is _reader.ReadByte() != 0
             // WithCheckSum
-            if (Version > 101)
-                WithCheckSum = _reader.ReadByte() == 0;
-            else
-                WithCheckSum = false;
+            WithCheckSum = 
+                Version > 101 && 
+                _reader.ReadByte() == 0;
 
             // ModuleAdditionalData
             ModuleAdditionalData = new UDBFAdditionalData(_reader);
@@ -69,10 +68,9 @@ namespace UDBF.NET
             StartTimeToDayFactor = _reader.ReadDouble();
 
             // ActTimeDataType
-            if (Version >= 107)
-                ActTimeDataType = (UDBFDataType)_reader.ReadUInt16();
-            else
-                ActTimeDataType = UDBFDataType.UnSignedInt32;
+            ActTimeDataType = Version >= 107
+                ? (UDBFDataType)_reader.ReadUInt16()
+                : UDBFDataType.UnSignedInt32;
 
             // ActTimeToSecondFactor
             ActTimeToSecondFactor = _reader.ReadDouble();
@@ -85,7 +83,11 @@ namespace UDBF.NET
 
             // Variables
             var variableCount = _reader.ReadUInt16();
-            Variables = Enumerable.Range(0, variableCount).Select(current => new UDBFVariable(Version, _reader)).ToList();
+            
+            Variables = Enumerable
+                .Range(0, variableCount)
+                .Select(current => new UDBFVariable(Version, _reader))
+                .ToList();
 
             // HeaderSize
             HeaderSize = _reader.BaseStream.Position + 1;

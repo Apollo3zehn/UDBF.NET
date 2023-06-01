@@ -25,7 +25,7 @@ namespace UDBF.NET
                 Type = (UDBFAdditionalDataType)reader.ReadUInt16();
                 StructID = reader.ReadUInt16();
 
-                if (Type <= UDBFAdditionalDataType.Reference)
+                if (Type == UDBFAdditionalDataType.Reference)
                 {
                     Details = (StructID, dataLen) switch
                     {
@@ -78,7 +78,7 @@ namespace UDBF.NET
         /// <summary>
         /// The content of the additional data struct.
         /// </summary>
-        public object Details;
+        public object? Details;
 
         #endregion
     }
