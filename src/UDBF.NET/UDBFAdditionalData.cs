@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 
 namespace UDBF.NET
 {
@@ -24,12 +22,12 @@ namespace UDBF.NET
                 if (dataLen < 4)
                     throw new ArgumentException($"The value of '{nameof(dataLen)}' is invalid.");
 
-                this.Type = (UDBFAdditionalDataType)reader.ReadUInt16();
-                this.StructID = reader.ReadUInt16();
+                Type = (UDBFAdditionalDataType)reader.ReadUInt16();
+                StructID = reader.ReadUInt16();
 
-                if (this.Type <= UDBFAdditionalDataType.Reference)
+                if (Type <= UDBFAdditionalDataType.Reference)
                 {
-                    this.Details = (this.StructID, dataLen) switch
+                    Details = (StructID, dataLen) switch
                     {
                         (0, 4)  => null,
                         (0, _)  => throw new ArgumentException($"The value of '{nameof(dataLen)}' is invalid."),
@@ -40,10 +38,10 @@ namespace UDBF.NET
                         (2, 4)  => throw new ArgumentException($"The value of '{nameof(dataLen)}' is invalid."),
                         (2, _)  => reader.ReadFixedLengthString(),
 
-                        (_, _)  => throw new ArgumentException($"The value of '{nameof(this.StructID)}' is invalid.")
+                        (_, _)  => throw new ArgumentException($"The value of '{nameof(StructID)}' is invalid.")
                     };
                 }
-                else if (this.Type == (UDBFAdditionalDataType)175 && this.StructID == 0)
+                else if (Type == (UDBFAdditionalDataType)175 && StructID == 0)
                 {
                     if (dataLen > 4)
                     {
@@ -51,8 +49,8 @@ namespace UDBF.NET
                         var buffer2 = reader.ReadBytes(dataLen - 4 - buffer1.Length);
                         var stringData = Encoding.UTF8.GetString(buffer2).TrimEnd('\0');
 
-                        this.Details = stringData;
-                        //this.Details = JsonDocument.Parse(stringData);
+                        Details = stringData;
+                        //Details = JsonDocument.Parse(stringData);
                     }
                 }
                 else
@@ -75,7 +73,7 @@ namespace UDBF.NET
         /// <summary>
         /// The id additional data struct.
         /// </summary>
-        public UInt16 StructID { get; set; }
+        public ushort StructID { get; set; }
 
         /// <summary>
         /// The content of the additional data struct.

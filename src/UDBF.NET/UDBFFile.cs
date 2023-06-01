@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,7 +8,7 @@ namespace UDBF.NET
     // UNIVERSAL DATA-BIN-FILE FORMAT
     // http://www.famosforum.de/index.php?attachment/508-udbf-107-pdf/
     // http://www.famosforum.de/forum/index.php?thread/903-einlesen-von-ganter-loggerdaten-dat-in-famos/
-    
+
     /// <summary>
     /// An in-memory representation of an UDFB file.
     /// </summary>
@@ -43,63 +39,63 @@ namespace UDBF.NET
                 throw new NotSupportedException("The underlying stream must be seekable.");
 
             // Endianess
-            this.IsLittleEndian = _reader.ReadByte() == 0;
+            IsLittleEndian = _reader.ReadByte() == 0;
 
-            if (!this.IsLittleEndian)
+            if (!IsLittleEndian)
                 throw new NotSupportedException($"Big-Endian data layout is not supported.");
 
             // Version
-            this.Version = _reader.ReadUInt16();
+            Version = _reader.ReadUInt16();
 
-            if (this.Version > SUPPORTED_VERSION)
+            if (Version > SUPPORTED_VERSION)
                 throw new NotSupportedException($"The file version { SUPPORTED_VERSION } is not yet supported. Please inform the package maintainer on GitHub.");
 
             // TypeVendor
-            if (this.Version > 106)
-                this.TypeVendor = _reader.ReadFixedLengthString();
+            if (Version > 106)
+                TypeVendor = _reader.ReadFixedLengthString();
             else
-                this.TypeVendor = string.Empty;
+                TypeVendor = string.Empty;
 
             // WithCheckSum
-            if (this.Version > 101)
-                this.WithCheckSum = _reader.ReadByte() == 0;
+            if (Version > 101)
+                WithCheckSum = _reader.ReadByte() == 0;
             else
-                this.WithCheckSum = false;
+                WithCheckSum = false;
 
             // ModuleAdditionalData
-            this.ModuleAdditionalData = new UDBFAdditionalData(_reader);
+            ModuleAdditionalData = new UDBFAdditionalData(_reader);
 
             // StartTimeToDayFactor
-            this.StartTimeToDayFactor = _reader.ReadDouble();
+            StartTimeToDayFactor = _reader.ReadDouble();
 
             // ActTimeDataType
-            if (this.Version >= 107)
-                this.ActTimeDataType = (UDBFDataType)_reader.ReadUInt16();
+            if (Version >= 107)
+                ActTimeDataType = (UDBFDataType)_reader.ReadUInt16();
             else
-                this.ActTimeDataType = UDBFDataType.UnSignedInt32;
+                ActTimeDataType = UDBFDataType.UnSignedInt32;
 
             // ActTimeToSecondFactor
-            this.ActTimeToSecondFactor = _reader.ReadDouble();
+            ActTimeToSecondFactor = _reader.ReadDouble();
 
             // StartTime
-            this.StartTime = _reader.ReadDouble();
+            StartTime = _reader.ReadDouble();
 
             // SampleRate
-            this.SampleRate = _reader.ReadDouble();
+            SampleRate = _reader.ReadDouble();
 
             // Variables
             var variableCount = _reader.ReadUInt16();
-            this.Variables = Enumerable.Range(0, variableCount).Select(current => new UDBFVariable(this.Version, _reader)).ToList();
+            Variables = Enumerable.Range(0, variableCount).Select(current => new UDBFVariable(Version, _reader)).ToList();
 
             // HeaderSize
-            this.HeaderSize = _reader.BaseStream.Position + 1;
+            HeaderSize = _reader.BaseStream.Position + 1;
 
             // DataStartPosition
             _reader.BaseStream.Position += 8; // minimum 8 separation characters are added
             var remainder = _reader.BaseStream.Position % 16;
             var bytesToAdd = remainder == 0 ? 0 : 16 - remainder;
 
-            this.DataStartPosition = _reader.BaseStream.Position + bytesToAdd;
+            DataStartPosition = _reader.BaseStream.Position + bytesToAdd;
         }
 
         #endregion
@@ -114,7 +110,7 @@ namespace UDBF.NET
         /// <summary>
         /// Gets or sets the file version.
         /// </summary>
-        public UInt16 Version { get; set; }
+        public ushort Version { get; set; }
 
         /// <summary>
         /// Gets or sets the type vendor.
@@ -174,8 +170,8 @@ namespace UDBF.NET
         /// <summary>
         /// Gets a boolean which indicates if each data row is preceeded by a time field.
         /// </summary>
-        public bool HasTimeField => this.ActTimeDataType > UDBFDataType.No;
-        // what if this.Version < 107 (= no this.ActTimeDataType field)? How to know if ActTime field exists?
+        public bool HasTimeField => ActTimeDataType > UDBFDataType.No;
+        // what if Version < 107 (= no ActTimeDataType field)? How to know if ActTime field exists?
 
         #endregion
 
@@ -188,23 +184,23 @@ namespace UDBF.NET
         /// <param name="variable">The variable metadata.</param>
         public (DateTime[] TimeStamps, UDBFData<T> Data) Read<T>(UDBFVariable variable) where T : unmanaged
         {
-            (var variables, var rowWidth, var bufferSize, var startTime, var epoch) = this.PrepareRead();
+            (var variables, var rowWidth, var bufferSize, var startTime, var epoch) = PrepareRead();
 
             // variableOffset
             if (variables.IndexOf(variable) == -1)
                 throw new ArgumentException("The passed variable does not belong to this file.");
 
             var variableOffset = variables.Where(current => variables.IndexOf(current) < variables.IndexOf(variable))
-                                          .Sum(variable => this.GetSize(variable.DataType));
+                                          .Sum(variable => GetSize(variable.DataType));
 
-            if (this.HasTimeField)
-                variableOffset += this.GetSize(this.ActTimeDataType);
+            if (HasTimeField)
+                variableOffset += GetSize(ActTimeDataType);
 
             // buffers
             var timestamps = new DateTime[bufferSize];
             var result = default(T[]);
-            var typeSize = this.GetSize(variable.DataType);
-            var buffer = this.GetBuffer((ulong)(bufferSize * typeSize), out result);
+            var typeSize = GetSize(variable.DataType);
+            var buffer = GetBuffer((ulong)(bufferSize * typeSize), out result);
 
             // memory mapped file
             using var mmf = MemoryMappedFile.CreateFromFile(_fileStream, null, 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true);
@@ -212,21 +208,21 @@ namespace UDBF.NET
             
             // go
             var row = 0;
-            var correctedFileLength = this.DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
-            var filePosition = this.DataStartPosition;
+            var correctedFileLength = DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
+            var filePosition = DataStartPosition;
 
             while (filePosition < correctedFileLength)
             {
-                if (this.HasTimeField)
+                if (HasTimeField)
                 {
-                    var rawTime = this.ReadSingleValue(accessor, filePosition, this.ActTimeDataType);
-                    var relativeTime = TimeSpan.FromDays(rawTime * this.ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
+                    var rawTime = ReadSingleValue(accessor, filePosition, ActTimeDataType);
+                    var relativeTime = TimeSpan.FromDays(rawTime * ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
 
                     timestamps[row] = epoch.Add(relativeTime);
                 }
 
                 // got to current row + variable offset
-                var rowStart = this.DataStartPosition + rowWidth * row;
+                var rowStart = DataStartPosition + rowWidth * row;
                 var bufferOffset = row * typeSize;
 
                 for (int i = 0; i < typeSize; i++)
@@ -248,7 +244,7 @@ namespace UDBF.NET
         /// <returns></returns>
         public (DateTime[] TimeStamps, List<UDBFData> Dataset) ReadAll()
         {
-            (var variables, var rowWidth, var bufferSize, var startTime, var epoch) = this.PrepareRead();
+            (var variables, var rowWidth, var bufferSize, var startTime, var epoch) = PrepareRead();
 
             // buffers
             var timestamps = new DateTime[bufferSize];
@@ -260,24 +256,24 @@ namespace UDBF.NET
 
             // go
             var bufferPosition = 0;
-            var correctedFileLength = this.DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
-            var filePosition = this.DataStartPosition;
+            var correctedFileLength = DataStartPosition + bufferSize * rowWidth; /* instead of _reader.BaseStream.Length (for corrupted files) */
+            var filePosition = DataStartPosition;
 
             while (filePosition < correctedFileLength)
             {
-                if (this.HasTimeField)
+                if (HasTimeField)
                 {
-                    var rawTime = this.ReadSingleValue(accessor, filePosition, this.ActTimeDataType);
-                    filePosition += this.GetSize(this.ActTimeDataType);
+                    var rawTime = ReadSingleValue(accessor, filePosition, ActTimeDataType);
+                    filePosition += GetSize(ActTimeDataType);
 
-                    var relativeTime = TimeSpan.FromDays(rawTime * this.ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
+                    var relativeTime = TimeSpan.FromDays(rawTime * ActTimeToSecondFactor / TimeSpan.FromDays(1).TotalSeconds + startTime);
                     timestamps[bufferPosition] = epoch.Add(relativeTime);
                 }
 
                 for (int i = 0; i < variables.Count; i++)
                 {
-                    buffers[i][bufferPosition] = this.ReadSingleValue(accessor, filePosition, variables[i].DataType);
-                    filePosition += this.GetSize(variables[i].DataType);
+                    buffers[i][bufferPosition] = ReadSingleValue(accessor, filePosition, variables[i].DataType);
+                    filePosition += GetSize(variables[i].DataType);
                 }
 
                 bufferPosition++;
@@ -297,23 +293,23 @@ namespace UDBF.NET
         private (List<UDBFVariable>, int, long, double, DateTime) PrepareRead()
         {
             // variables
-            var variables = this.Variables.Where(variable => variable.DataDirection == UDBFDataDirection.Input ||
+            var variables = Variables.Where(variable => variable.DataDirection == UDBFDataDirection.Input ||
                                                              variable.DataDirection == UDBFDataDirection.InputOutput).ToList();
 
             // rowSize
-            var rowWidth = variables.Sum(variable => this.GetSize(variable.DataType));
+            var rowWidth = variables.Sum(variable => GetSize(variable.DataType));
 
-            if (this.HasTimeField)
-                rowWidth += this.GetSize(this.ActTimeDataType);
+            if (HasTimeField)
+                rowWidth += GetSize(ActTimeDataType);
 
             // bufferSize
             var bufferSize = (_reader.BaseStream.Length
-                              - this.DataStartPosition
-                              //- (this.WithCheckSum ? 4 : 0) // checksum seems to be missing in test files?!
+                              - DataStartPosition
+                              //- (WithCheckSum ? 4 : 0) // checksum seems to be missing in test files?!
                               ) / rowWidth;
 
             // time 
-            var startTime = this.StartTime * this.StartTimeToDayFactor;
+            var startTime = StartTime * StartTimeToDayFactor;
             var epoch = new DateTime(1899, 12, 30, 0, 0, 0, 0, DateTimeKind.Utc);
 
             return (variables, rowWidth, bufferSize, startTime, epoch);

@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace UDBF.NET
+﻿namespace UDBF.NET
 {
 #warning Find descriptions for all members of this type.
 
@@ -18,9 +15,9 @@ namespace UDBF.NET
         /// <param name="reader"></param>
         public UDBFAdditionalDataStruct_Variable_v1(BinaryReader reader)
         {
-            this.UARTIndex = reader.ReadUInt16();
-            this.SlaveAddress = reader.ReadUInt16();
-            this.SlaveDataIndex = reader.ReadUInt16();
+            UARTIndex = reader.ReadUInt16();
+            SlaveAddress = reader.ReadUInt16();
+            SlaveDataIndex = reader.ReadUInt16();
         }
 
         #endregion
@@ -30,17 +27,17 @@ namespace UDBF.NET
         /// <summary>
         /// Unknown.
         /// </summary>
-        public UInt16 UARTIndex { get; set; }
+        public ushort UARTIndex { get; set; }
 
         /// <summary>
         /// Unknown.
         /// </summary>
-        public UInt16 SlaveAddress { get; set; }
+        public ushort SlaveAddress { get; set; }
 
         /// <summary>
         /// Unknown.
         /// </summary>
-        public UInt16 SlaveDataIndex { get; set; }
+        public ushort SlaveDataIndex { get; set; }
 
         #endregion
     }

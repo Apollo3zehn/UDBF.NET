@@ -14,8 +14,8 @@
         /// <param name="buffer">The buffer containing the actual data</param>
         public UDBFData(UDBFVariable variable, double[] buffer)
         {
-            this.Variable = variable;
-            this.Buffer = buffer;
+            Variable = variable;
+            Buffer = buffer;
         }
 
         #endregion
@@ -50,8 +50,8 @@
         /// <param name="buffer">The buffer containing the actual data</param>
         public UDBFData(UDBFVariable variable, T[] buffer)
         {
-            this.Variable = variable;
-            this.Buffer = buffer;
+            Variable = variable;
+            Buffer = buffer;
         }
 
         #endregion

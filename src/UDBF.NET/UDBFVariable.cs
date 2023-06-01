@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 
 namespace UDBF.NET
 {
@@ -28,31 +26,31 @@ namespace UDBF.NET
         public UDBFVariable(UInt16 version, BinaryReader reader)
         {
             // Name
-            this.Name = reader.ReadFixedLengthString();
+            Name = reader.ReadFixedLengthString();
 
             // DataDirection
-            this.DataDirection = (UDBFDataDirection)reader.ReadUInt16();
+            DataDirection = (UDBFDataDirection)reader.ReadUInt16();
 
             // DataType
             if (version >= 102)
-                this.DataType = (UDBFDataType)reader.ReadUInt16();
+                DataType = (UDBFDataType)reader.ReadUInt16();
             else
-                this.DataType = (UDBFDataType)this.ConvertDataType(reader.ReadUInt16());
+                DataType = (UDBFDataType)ConvertDataType(reader.ReadUInt16());
 
             // FieldLen
-            this.FieldLen = reader.ReadUInt16();
+            FieldLen = reader.ReadUInt16();
 
             // Precision
-            this.Precision = reader.ReadUInt16();
+            Precision = reader.ReadUInt16();
 
             // Unit
             if (version >= 106)
-                this.Unit = reader.ReadFixedLengthString();
+                Unit = reader.ReadFixedLengthString();
             else
-                this.Unit = string.Empty;
+                Unit = string.Empty;
 
             // AdditionalData
-            this.AdditionalData = new UDBFAdditionalData(reader);
+            AdditionalData = new UDBFAdditionalData(reader);
         }
 
         #endregion
@@ -79,14 +77,14 @@ namespace UDBF.NET
         /// <summary>
         /// Gets or sets the field length of the variable. The field length is in maximum 8 digits, in case a comma is being used it will be seen as 1 digit as well.
         /// </summary>
-        public UInt16 FieldLen { get; set; }
+        public ushort FieldLen { get; set; }
 
         // Note: The precision description comes from the test.commander software.
 
         /// <summary>
         /// Gets or sets the precision of the variable. The precision defines the number of digits next to the comma.
         /// </summary>
-        public UInt16 Precision { get; set; }
+        public ushort Precision { get; set; }
 
         /// <summary>
         /// Gets or sets the unit of the variable.
